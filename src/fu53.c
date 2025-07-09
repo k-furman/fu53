@@ -54,7 +54,8 @@ int open(const char *pathname, int flags, ...)
 	}
 
 	if (getenv("WITH_COVERAGE"))
-		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno"))
+		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
+			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
 			return (original_open(pathname, flags));
 
 	if (flags & (O_CREAT | O_APPEND | O_WRONLY | O_RDWR | O_SYNC))
@@ -88,7 +89,8 @@ int openat(int dirfd, const char *pathname, int flags, ...)
 	}
 
 	if (getenv("WITH_COVERAGE"))
-		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno"))
+		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
+		strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
 			return (original_openat(dirfd, pathname, flags));
 
 	if (flags & (O_CREAT | O_APPEND | O_WRONLY | O_RDWR | O_SYNC))
@@ -131,7 +133,8 @@ FILE *fopen(const char *pathname, const char *mode)
 		return (original_fopen(pathname, mode));
 
 	if (getenv("WITH_COVERAGE"))
-		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno"))
+		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
+			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
 			return (original_fopen(pathname, mode));
 
 	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
@@ -150,7 +153,8 @@ FILE *fopen64(const char *pathname, const char *mode)
 		return (original_fopen64(pathname, mode));
 
 	if (getenv("WITH_COVERAGE"))
-		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno"))
+		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
+			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
 			return (fopen(pathname, mode));
 
 	return (fopen(pathname, mode));
