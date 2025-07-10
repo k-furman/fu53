@@ -31,12 +31,20 @@
 
 int open(const char *pathname, int flags, ...)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static open_type original_open = NULL;
 	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	if (!original_open)
 		original_open = (open_type)dlsym(RTLD_NEXT, "open");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 	{
 		if (flags & O_CREAT)
 		{
@@ -66,12 +74,20 @@ int open(const char *pathname, int flags, ...)
 
 int openat(int dirfd, const char *pathname, int flags, ...)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static openat_type original_openat = NULL;
 	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	if (!original_openat)
 		original_openat = (openat_type)dlsym(RTLD_NEXT, "openat");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 	{
 		if (flags & O_CREAT)
 		{
@@ -101,7 +117,15 @@ int openat(int dirfd, const char *pathname, int flags, ...)
 
 int creat(const char *pathname, mode_t mode)
 {
-	if (!getenv("WITH_OPEN"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static creat_type original_creat = NULL;
@@ -113,7 +137,15 @@ int creat(const char *pathname, mode_t mode)
 
 void *dlopen(const char *filename, int flag)
 {
-	if (!getenv("WITH_OPEN"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
+	if (!value)
 		return NULL;
 
 	static dlopen_type original_dlopen = NULL;
@@ -125,11 +157,19 @@ void *dlopen(const char *filename, int flag)
 
 FILE *fopen(const char *pathname, const char *mode)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static fopen_type original_fopen = NULL;
 	if (!original_fopen)
 		original_fopen = (fopen_type)dlsym(RTLD_NEXT, "fopen");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 		return (original_fopen(pathname, mode));
 
 	if (getenv("WITH_COVERAGE"))
@@ -145,11 +185,19 @@ FILE *fopen(const char *pathname, const char *mode)
 
 FILE *fopen64(const char *pathname, const char *mode)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static fopen_type original_fopen64 = NULL;
 	if (!original_fopen64)
 		original_fopen64 = (fopen_type)dlsym(RTLD_NEXT, "fopen64");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 		return (original_fopen64(pathname, mode));
 
 	if (getenv("WITH_COVERAGE"))
@@ -162,11 +210,19 @@ FILE *fopen64(const char *pathname, const char *mode)
 
 FILE *fdopen(int fildes, const char *mode)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static fdopen_type original_fdopen = NULL;
 	if (!original_fdopen)
 		original_fdopen = (fdopen_type)dlsym(RTLD_NEXT, "fdopen");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 		return (original_fdopen(fildes, mode));
 
 	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
@@ -177,11 +233,19 @@ FILE *fdopen(int fildes, const char *mode)
 
 FILE *freopen(const char *path, const char *mode, FILE *stream)
 {
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
 	static freopen_type original_freopen = NULL;
 	if (!original_freopen)
 		original_freopen = (freopen_type)dlsym(RTLD_NEXT, "freopen");
 
-	if (getenv("WITH_OPEN"))
+	if (value)
 		return (original_freopen(path, mode, stream));
 
 	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
@@ -192,7 +256,15 @@ FILE *freopen(const char *path, const char *mode, FILE *stream)
 
 int remove(const char *pathname)
 {
-	if (!getenv("WITH_REMOVE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_REMOVE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static remove_type original_remove = NULL;
@@ -204,7 +276,15 @@ int remove(const char *pathname)
 
 int rmdir(const char *pathname)
 {
-	if (!getenv("WITH_REMOVE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_REMOVE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static rmdir_type original_rmdir = NULL;
@@ -216,7 +296,15 @@ int rmdir(const char *pathname)
 
 int unlink(const char *fname)
 {
-	if (!getenv("WITH_REMOVE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_REMOVE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static unlink_type original_unlink = NULL;
@@ -228,7 +316,15 @@ int unlink(const char *fname)
 
 int unlinkat(int dirfd, const char *pathname, int flags)
 {
-	if (!getenv("WITH_REMOVE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_REMOVE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static unlinkat_type original_unlinkat = NULL;
@@ -240,7 +336,15 @@ int unlinkat(int dirfd, const char *pathname, int flags)
 
 int execv(const char *path, char *const argv[])
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static execv_type original_execv = NULL;
@@ -252,7 +356,15 @@ int execv(const char *path, char *const argv[])
 
 int execve(const char *path, char *const argv[], char *const envp[])
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static execve_type original_execve = NULL;
@@ -264,7 +376,15 @@ int execve(const char *path, char *const argv[], char *const envp[])
 
 int execvp(const char *file, char *const argv[])
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static execvp_type original_execvp = NULL;
@@ -276,7 +396,15 @@ int execvp(const char *file, char *const argv[])
 
 int execvpe(const char *file, char *const argv[], char *const envp[])
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static execvpe_type original_execvpe = NULL;
@@ -288,7 +416,15 @@ int execvpe(const char *file, char *const argv[], char *const envp[])
 
 int execveat(int dirfd, const char *pathname, char *const argv[], char *const envp[], int flags)
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static execveat_type original_execveat = NULL;
@@ -300,7 +436,15 @@ int execveat(int dirfd, const char *pathname, char *const argv[], char *const en
 
 int fexecve(int fd, char *const argv[], char *const envp[])
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static fexecve_type original_fexecve = NULL;
@@ -312,7 +456,15 @@ int fexecve(int fd, char *const argv[], char *const envp[])
 
 int execl(const char *path, const char *arg, ...)
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	va_list ap;
@@ -340,7 +492,15 @@ int execl(const char *path, const char *arg, ...)
 
 int execlp(const char *file, const char *arg, ...)
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	va_list ap;
@@ -370,7 +530,15 @@ int execlp(const char *file, const char *arg, ...)
 
 int execle(const char *path, const char *arg, ...)
 {
-	if (!getenv("WITH_EXEC"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_EXEC");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	va_list ap;
@@ -400,7 +568,15 @@ int execle(const char *path, const char *arg, ...)
 
 int rename(const char *oldpath, const char *newpath)
 {
-	if (!getenv("WITH_RENAME"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_RENAME");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static rename_type original_rename = NULL;
@@ -412,7 +588,15 @@ int rename(const char *oldpath, const char *newpath)
 
 int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
-	if (!getenv("WITH_RENAME"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_RENAME");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static renameat_type original_renameat = NULL;
@@ -424,7 +608,15 @@ int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpat
 
 int renameat2(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, unsigned int flags)
 {
-	if (!getenv("WITH_RENAME"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_RENAME");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static renameat2_type original_renameat2 = NULL;
@@ -436,7 +628,15 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd, const char *newpa
 
 int chown(const char *path, uid_t owner, gid_t group)
 {
-	if (!getenv("WITH_CHANGE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static chown_type original_chown = NULL;
@@ -448,7 +648,15 @@ int chown(const char *path, uid_t owner, gid_t group)
 
 int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags)
 {
-	if (!getenv("WITH_CHANGE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static fchownat_type original_fchownat = NULL;
@@ -460,7 +668,15 @@ int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flag
 
 int chmod(const char *pathname, mode_t mode)
 {
-	if (!getenv("WITH_CHANGE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static chmod_type original_chmod = NULL;
@@ -472,7 +688,15 @@ int chmod(const char *pathname, mode_t mode)
 
 int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)
 {
-	if (!getenv("WITH_CHANGE"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static fchmodat_type original_fchmodat = NULL;
@@ -484,7 +708,15 @@ int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)
 
 int system(const char *command)
 {
-	if (!getenv("WITH_SYSTEM"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_SYSTEM");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static system_type original_system = NULL;
@@ -496,7 +728,15 @@ int system(const char *command)
 
 long syscall(long number, ...)
 {
-	if (!getenv("WITH_SYSTEM"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_SYSTEM");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static syscall_type original_syscall = NULL;
@@ -519,7 +759,15 @@ long syscall(long number, ...)
 
 int chroot(const char *path)
 {
-	if (!getenv("WITH_SYSTEM"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_SYSTEM");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static chroot_type original_chroot = NULL;
@@ -531,7 +779,15 @@ int chroot(const char *path)
 
 pid_t fork(void)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static fork_type original_fork = NULL;
@@ -543,7 +799,15 @@ pid_t fork(void)
 
 FILE *popen(const char *command, const char *type)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return NULL;
 
 	static popen_type original_popen = NULL;
@@ -555,7 +819,15 @@ FILE *popen(const char *command, const char *type)
 
 int mkfifo(const char *pathname, mode_t mode)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static mkfifo_type original_mkfifo = NULL;
@@ -567,7 +839,15 @@ int mkfifo(const char *pathname, mode_t mode)
 
 int mkfifoat(int dirfd, const char *pathname, mode_t mode)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static mkfifoat_type original_mkfifoat = NULL;
@@ -579,7 +859,15 @@ int mkfifoat(int dirfd, const char *pathname, mode_t mode)
 
 int mknod(const char *pathname, mode_t mode, dev_t dev)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static mknod_type original_mknod = NULL;
@@ -591,7 +879,15 @@ int mknod(const char *pathname, mode_t mode, dev_t dev)
 
 int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static mknodat_type original_mknodat = NULL;
@@ -603,7 +899,15 @@ int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev)
 
 sem_t *sem_open(const char *name, int oflag, ...)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return SEM_FAILED;
 
 	static sem_open_type original_sem_open = NULL;
@@ -628,7 +932,15 @@ sem_t *sem_open(const char *name, int oflag, ...)
 
 int semctl(int semid, int semnum, int cmd, ...)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static semctl_type original_semctl = NULL;
@@ -666,7 +978,15 @@ int semctl(int semid, int semnum, int cmd, ...)
 
 int semget(key_t key, int nsems, int semflg)
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static semget_type original_semget = NULL;
@@ -678,7 +998,15 @@ int semget(key_t key, int nsems, int semflg)
 
 int pipe(int pipefd[2])
 {
-	if (!getenv("WITH_PARALLEL"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_PARALLEL");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static pipe_type original_pipe = NULL;
@@ -690,7 +1018,15 @@ int pipe(int pipefd[2])
 
 int dup(int oldfd)
 {
-	if (!getenv("WITH_DUP"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_DUP");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static dup_type original_dup = NULL;
@@ -702,7 +1038,15 @@ int dup(int oldfd)
 
 int dup2(int oldfd, int newfd)
 {
-	if (!getenv("WITH_DUP"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_DUP");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static dup2_type original_dup2 = NULL;
@@ -714,7 +1058,15 @@ int dup2(int oldfd, int newfd)
 
 int dup3(int oldfd, int newfd, int flags)
 {
-	if (!getenv("WITH_DUP"))
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_DUP");
+		init = 1;
+	}
+
+	if (!value)
 		return -1;
 
 	static dup3_type original_dup3 = NULL;
