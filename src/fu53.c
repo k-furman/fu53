@@ -7,8 +7,11 @@
  * binary when compiling, or use it via LD_PRELOAD/AFL_PRELOAD.
  *
  * Supported enviromental variables are:
- * - WITH_OPEN, which turnes on original open(), open64(), openat(),
- *   creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
+ * - WITH_OPEN=N, which turnes on original open(), open64(), openat(),
+ *   creat(), fopen(), fopen64(), fdopen(), freopen() funcs. N value
+ *   determines how many times original functions can call during one
+ *   execution. If any character/string as N value is specified,
+ *   or 0 pass as N value, original functions will use;
  * - WITH_REMOVE, which turnes on original remove(), rmdir(),
  *   unlink(), unlinkat() funcs;
  * - WITH_EXEC, which turnes on original execv(), execve(), execvp(),
@@ -20,9 +23,14 @@
  *   chmod(), fchmodat() funcs;
  * - WITH_SYSTEM, which turnes on original system(), syscall(),
  *   chroot() funcs;
- * - WITH_PARALLEL, which turnes on original fork(), popen(),
- *   mkfifo(), mkfifoat(), mknod(), mknodat(), sem_open(),
- *   semclt(), semget(), pipe() funcs;
+ * - WITH_FORK=N, which turnes on original fork(). N value determines
+ *   how many times original fork() can call during one execution.
+ *   If any character/string as N value is specified,
+ *   or 0 pass as N value, original function will use;
+ * - WITH_PARALLEL=N, which turnes on original popen(), mkfifo(),
+ *   mkfifoat(), mknod(), mknodat(), sem_open(), semclt(), semget(),
+ *   pipe() funcs. If any character/string as N value is specified,
+ *   or 0 pass as N value, original functions will use;
  * - WITH_DUP, which turnes on original dup(), dup2(), dup3(), funcs.
  * - WITH_ENV, which turnes on original setenv(), unsetenv() funcs;
  * - WITH_COVERAGE, which turnes on coverage collection support.
@@ -32,34 +40,43 @@
 
 int open(const char *pathname, int flags, ...)
 {
+	static open_type original_open = NULL;
+	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static open_type original_open = NULL;
-	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	if (!original_open)
 		original_open = (open_type)dlsym(RTLD_NEXT, "open");
 
 	if (value)
 	{
-		if (flags & O_CREAT)
+		if (calls < num || num == 0)
 		{
-			va_list arg;
-			mode_t mode;
-			va_start(arg, flags);
-			if (promoted)
-				mode = va_arg(arg, uint32_t);
-			else
-				mode = va_arg(arg, mode_t);
-			va_end(arg);
-			return (original_open(pathname, flags, mode));
+			if (flags & O_CREAT)
+			{
+				va_list arg;
+				mode_t mode;
+				va_start(arg, flags);
+				if (promoted)
+					mode = va_arg(arg, uint32_t);
+				else
+					mode = va_arg(arg, mode_t);
+				va_end(arg);
+				calls++;
+				return (original_open(pathname, flags, mode));
+			}
+			calls++;
+			return (original_open(pathname, flags));
 		}
-		return (original_open(pathname, flags));
 	}
 
 	if (getenv("WITH_COVERAGE"))
@@ -75,34 +92,43 @@ int open(const char *pathname, int flags, ...)
 
 int open64(const char *pathname, int flags, ...)
 {
+	static open64_type original_open64 = NULL;
+	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static open64_type original_open64 = NULL;
-	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	if (!original_open64)
 		original_open64 = (open64_type)dlsym(RTLD_NEXT, "open64");
 
 	if (value)
 	{
-		if (flags & O_CREAT)
+		if (calls < num || num == 0)
 		{
-			va_list arg;
-			mode_t mode;
-			va_start(arg, flags);
-			if (promoted)
-				mode = va_arg(arg, uint32_t);
-			else
-				mode = va_arg(arg, mode_t);
-			va_end(arg);
-			return (original_open64(pathname, flags, mode));
+			if (flags & O_CREAT)
+			{
+				va_list arg;
+				mode_t mode;
+				va_start(arg, flags);
+				if (promoted)
+					mode = va_arg(arg, uint32_t);
+				else
+					mode = va_arg(arg, mode_t);
+				va_end(arg);
+				calls++;
+				return (original_open64(pathname, flags, mode));
+			}
+			calls++;
+			return (original_open64(pathname, flags));
 		}
-		return (original_open64(pathname, flags));
 	}
 
 	if (getenv("WITH_COVERAGE"))
@@ -118,39 +144,48 @@ int open64(const char *pathname, int flags, ...)
 
 int openat(int dirfd, const char *pathname, int flags, ...)
 {
+	static openat_type original_openat = NULL;
+	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static openat_type original_openat = NULL;
-	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	if (!original_openat)
 		original_openat = (openat_type)dlsym(RTLD_NEXT, "openat");
 
 	if (value)
 	{
-		if (flags & O_CREAT)
+		if (calls < num || num == 0)
 		{
-			va_list arg;
-			mode_t mode;
-			va_start(arg, flags);
-			if (promoted)
-				mode = va_arg(arg, uint32_t);
-			else
-				mode = va_arg(arg, mode_t);
-			va_end(arg);
-			return (original_openat(dirfd, pathname, flags, mode));
+			if (flags & O_CREAT)
+			{
+				va_list arg;
+				mode_t mode;
+				va_start(arg, flags);
+				if (promoted)
+					mode = va_arg(arg, uint32_t);
+				else
+					mode = va_arg(arg, mode_t);
+				va_end(arg);
+				calls++;
+				return (original_openat(dirfd, pathname, flags, mode));
+			}
+			calls++;
+			return (original_openat(dirfd, pathname, flags));
 		}
-		return (original_openat(dirfd, pathname, flags));
 	}
 
 	if (getenv("WITH_COVERAGE"))
 		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
-		strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
+			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
 			return (original_openat(dirfd, pathname, flags));
 
 	if (flags & (O_CREAT | O_APPEND | O_WRONLY | O_RDWR | O_SYNC))
@@ -161,60 +196,90 @@ int openat(int dirfd, const char *pathname, int flags, ...)
 
 int creat(const char *pathname, mode_t mode)
 {
+	static creat_type original_creat = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
 	if (!value)
 		return -1;
 
-	static creat_type original_creat = NULL;
 	if (!original_creat)
 		original_creat = (creat_type)dlsym(RTLD_NEXT, "creat");
 
-	return (original_creat(pathname, mode));
+	if (calls < num || num == 0)
+	{
+		calls++;
+		return (original_creat(pathname, mode));
+	}
+
+	return -1;
 }
 
 void *dlopen(const char *filename, int flag)
 {
+	static dlopen_type original_dlopen = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
 	if (!value)
 		return NULL;
 
-	static dlopen_type original_dlopen = NULL;
 	if (!original_dlopen)
 		original_dlopen = (dlopen_type)dlsym(RTLD_NEXT, "dlopen");
 
-	return (original_dlopen(filename, flag));
+	if (calls < num || num == 0)
+	{
+		calls++;
+		return (original_dlopen(filename, flag));
+	}
+
+	return NULL;
 }
 
 FILE *fopen(const char *pathname, const char *mode)
 {
+	static fopen_type original_fopen = NULL;
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static fopen_type original_fopen = NULL;
 	if (!original_fopen)
 		original_fopen = (fopen_type)dlsym(RTLD_NEXT, "fopen");
 
 	if (value)
-		return (original_fopen(pathname, mode));
+	{
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_fopen(pathname, mode));
+		}
+	}
 
 	if (getenv("WITH_COVERAGE"))
 		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
@@ -229,45 +294,68 @@ FILE *fopen(const char *pathname, const char *mode)
 
 FILE *fopen64(const char *pathname, const char *mode)
 {
+	static fopen64_type original_fopen64 = NULL;
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static fopen_type original_fopen64 = NULL;
 	if (!original_fopen64)
 		original_fopen64 = (fopen_type)dlsym(RTLD_NEXT, "fopen64");
 
 	if (value)
-		return (original_fopen64(pathname, mode));
+	{
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_fopen64(pathname, mode));
+		}
+	}
 
 	if (getenv("WITH_COVERAGE"))
 		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
 			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
-			return (fopen(pathname, mode));
+			return (original_fopen64(pathname, mode));
 
-	return (fopen(pathname, mode));
+	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
+		return (original_fopen64("/dev/null", mode));
+
+	return (original_fopen64(pathname, mode));
 }
 
 FILE *fdopen(int fildes, const char *mode)
 {
+	static fdopen_type original_fdopen = NULL;
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static fdopen_type original_fdopen = NULL;
 	if (!original_fdopen)
 		original_fdopen = (fdopen_type)dlsym(RTLD_NEXT, "fdopen");
 
 	if (value)
-		return (original_fdopen(fildes, mode));
+	{
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_fdopen(fildes, mode));
+		}
+	}
 
 	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
 		return (fopen("/dev/null", mode));
@@ -277,20 +365,30 @@ FILE *fdopen(int fildes, const char *mode)
 
 FILE *freopen(const char *path, const char *mode, FILE *stream)
 {
+	static freopen_type original_freopen = NULL;
+	static long unsigned num = 0;
 	static char *value;
 	static char init = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	static freopen_type original_freopen = NULL;
 	if (!original_freopen)
 		original_freopen = (freopen_type)dlsym(RTLD_NEXT, "freopen");
 
 	if (value)
-		return (original_freopen(path, mode, stream));
+	{
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_freopen(path, mode, stream));
+		}
+	}
 
 	if (strchr(mode, 'w') || strchr(mode, 'a' || strchr(mode, '+')))
 		return (original_freopen("/dev/null", mode, stream));
@@ -823,241 +921,343 @@ int chroot(const char *path)
 
 pid_t fork(void)
 {
+	static fork_type original_fork = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
-		value = getenv("WITH_PARALLEL");
+		value = getenv("WITH_FORK");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_fork)
+			original_fork = (fork_type)dlsym(RTLD_NEXT, "fork");
 
-	static fork_type original_fork = NULL;
-	if (!original_fork)
-		original_fork = (fork_type)dlsym(RTLD_NEXT, "fork");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_fork());
+		}
+	}
 
-	return (original_fork());
+	return -1;
 }
 
 FILE *popen(const char *command, const char *type)
 {
+	static popen_type original_popen = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return NULL;
+	if (value)
+	{
+		if (!original_popen)
+			original_popen = (popen_type)dlsym(RTLD_NEXT, "popen");
 
-	static popen_type original_popen = NULL;
-	if (!original_popen)
-		original_popen = (popen_type)dlsym(RTLD_NEXT, "popen");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_popen(command, type));
+		}
+	}
 
-	return (original_popen(command, type));
+	return NULL;
 }
 
 int mkfifo(const char *pathname, mode_t mode)
 {
+	static mkfifo_type original_mkfifo = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_mkfifo)
+			original_mkfifo = (mkfifo_type)dlsym(RTLD_NEXT, "mkfifo");
 
-	static mkfifo_type original_mkfifo = NULL;
-	if (!original_mkfifo)
-		original_mkfifo = (mkfifo_type)dlsym(RTLD_NEXT, "mkfifo");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_mkfifo(pathname, mode));
+		}
+	}
 
-	return (original_mkfifo(pathname, mode));
+	return -1;
 }
 
 int mkfifoat(int dirfd, const char *pathname, mode_t mode)
 {
+	static mkfifoat_type original_mkfifoat = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_mkfifoat)
+			original_mkfifoat = (mkfifoat_type)dlsym(RTLD_NEXT, "mkfifoat");
 
-	static mkfifoat_type original_mkfifoat = NULL;
-	if (!original_mkfifoat)
-		original_mkfifoat = (mkfifoat_type)dlsym(RTLD_NEXT, "mkfifoat");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_mkfifoat(dirfd, pathname, mode));
+		}
+	}
 
-	return (original_mkfifoat(dirfd, pathname, mode));
+	return -1;
 }
 
 int mknod(const char *pathname, mode_t mode, dev_t dev)
 {
+	static mknod_type original_mknod = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_mknod)
+			original_mknod = (mknod_type)dlsym(RTLD_NEXT, "mknod");
+		
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_mknod(pathname, mode, dev));
+		}
+	}
 
-	static mknod_type original_mknod = NULL;
-	if (!original_mknod)
-		original_mknod = (mknod_type)dlsym(RTLD_NEXT, "mknod");
-
-	return (original_mknod(pathname, mode, dev));
+	return -1;
 }
 
 int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev)
 {
+	static mknodat_type original_mknodat = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_mknodat)
+			original_mknodat = (mknodat_type)dlsym(RTLD_NEXT, "mknodat");
 
-	static mknodat_type original_mknodat = NULL;
-	if (!original_mknodat)
-		original_mknodat = (mknodat_type)dlsym(RTLD_NEXT, "mknodat");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_mknodat(dirfd, pathname, mode, dev));
+		}
+	}
 
-	return (original_mknodat(dirfd, pathname, mode, dev));
+	return -1;
 }
 
 sem_t *sem_open(const char *name, int oflag, ...)
 {
+	static sem_open_type original_sem_open = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return SEM_FAILED;
-
-	static sem_open_type original_sem_open = NULL;
-	if (!original_sem_open)
-		original_sem_open = (sem_open_type)dlsym(RTLD_NEXT, "sem_open");
-
-	if (oflag & O_CREAT)
+	if (value)
 	{
-		va_list args;
-		mode_t mode;
-		unsigned int value;
+		if (calls < num || num == 0)
+		{
+			if (!original_sem_open)
+				original_sem_open = (sem_open_type)dlsym(RTLD_NEXT, "sem_open");
 
-		va_start(args, oflag);
-		mode = va_arg(args, mode_t);
-		value = va_arg(args, unsigned int);
-		va_end(args);
-		return (original_sem_open(name, oflag, mode, value));
+			if (oflag & O_CREAT)
+			{
+				va_list args;
+				mode_t mode;
+				unsigned int value;
+
+				va_start(args, oflag);
+				mode = va_arg(args, mode_t);
+				value = va_arg(args, unsigned int);
+				va_end(args);
+				calls++;
+				return (original_sem_open(name, oflag, mode, value));
+			}
+
+			calls++;
+			return (original_sem_open(name, oflag));
+		}
 	}
 
-	return (original_sem_open(name, oflag));
+	return SEM_FAILED;
 }
 
 int semctl(int semid, int semnum, int cmd, ...)
 {
+	static semctl_type original_semctl = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
-
-	static semctl_type original_semctl = NULL;
-	if (!original_semctl)
-		original_semctl = (semctl_type)dlsym(RTLD_NEXT, "semctl");
-
-	union semun
+	if (value)
 	{
-		int val;			   /* Value for SETVAL */
-		struct semid_ds *buf;  /* Buffer for IPC_STAT, IPC_SET */
-		unsigned short *array; /* Array for GETALL, SETALL */
-		struct seminfo *__buf; /* Buffer for IPC_INFO */
-	};
-	va_list args;
-	union semun arg = {0};
-	switch (cmd)
-	{
-	case SETVAL: /* arg.val */
-	case GETALL: /* arg.array */
-	case SETALL:
-	case IPC_STAT: /* arg.buf */
-	case IPC_SET:
-	case SEM_STAT:
-	case SEM_STAT_ANY:
-	case IPC_INFO: /* arg.__buf */
-	case SEM_INFO:
-		va_start(args, cmd);
-		arg = va_arg(args, union semun);
-		va_end(args);
-		return (original_semctl(semid, semnum, cmd, arg));
+		if (!original_semctl)
+			original_semctl = (semctl_type)dlsym(RTLD_NEXT, "semctl");
+
+		if (calls < num || num == 0)
+		{
+			union semun
+			{
+				int val;			   /* Value for SETVAL */
+				struct semid_ds *buf;  /* Buffer for IPC_STAT, IPC_SET */
+				unsigned short *array; /* Array for GETALL, SETALL */
+				struct seminfo *__buf; /* Buffer for IPC_INFO */
+			};
+			va_list args;
+			union semun arg = {0};
+			switch (cmd)
+			{
+			case SETVAL: /* arg.val */
+			case GETALL: /* arg.array */
+			case SETALL:
+			case IPC_STAT: /* arg.buf */
+			case IPC_SET:
+			case SEM_STAT:
+			case SEM_STAT_ANY:
+			case IPC_INFO: /* arg.__buf */
+			case SEM_INFO:
+				va_start(args, cmd);
+				arg = va_arg(args, union semun);
+				va_end(args);
+				calls++;
+				return (original_semctl(semid, semnum, cmd, arg));
+			}
+
+			calls++;
+			return (original_semctl(semid, semnum, cmd));
+		}
 	}
 
-	return (original_semctl(semid, semnum, cmd));
+	return -1;
 }
 
 int semget(key_t key, int nsems, int semflg)
 {
+	static semget_type original_semget = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_semget)
+			original_semget = (semget_type)dlsym(RTLD_NEXT, "semget");
 
-	static semget_type original_semget = NULL;
-	if (!original_semget)
-		original_semget = (semget_type)dlsym(RTLD_NEXT, "semget");
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_semget(key, nsems, semflg));
+		}
+	}
 
-	return (original_semget(key, nsems, semflg));
+	return -1;
 }
 
 int pipe(int pipefd[2])
 {
+	static pipe_type original_pipe = NULL;
 	static char *value;
 	static char init = 0;
+	static long unsigned num = 0;
+	static int calls = 0;
 	if (!init)
 	{
 		value = getenv("WITH_PARALLEL");
+		if (value)
+			num = strtoul(value, NULL, 10);
 		init = 1;
 	}
 
-	if (!value)
-		return -1;
+	if (value)
+	{
+		if (!original_pipe)
+			original_pipe = (pipe_type)dlsym(RTLD_NEXT, "pipe");
+		
+		if (calls < num || num == 0)
+		{
+			calls++;
+			return (original_pipe(pipefd));
+		}
+	}
 
-	static pipe_type original_pipe = NULL;
-	if (!original_pipe)
-		original_pipe = (pipe_type)dlsym(RTLD_NEXT, "pipe");
-
-	return (original_pipe(pipefd));
+	return -1;
 }
 
 int dup(int oldfd)

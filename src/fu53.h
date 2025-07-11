@@ -16,6 +16,7 @@ typedef int (*openat_type)(int dirfd, const char *pathname, int flags, ...);
 typedef int (*creat_type)(const char *pathname, mode_t mode);
 typedef void *(*dlopen_type)(const char *, int);
 typedef FILE *(*fopen_type)(const char *pathname, const char *mode);
+typedef FILE *(*fopen64_type)(const char *pathname, const char *mode);
 typedef FILE *(*fdopen_type)(int fildes, const char *mode);
 typedef FILE *(*freopen_type)(const char *pathname, const char *mode, FILE *stream);
 typedef int (*remove_type)(const char *pathname);
