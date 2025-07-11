@@ -11,6 +11,7 @@
 #include <limits.h>
 
 typedef int (*open_type)(const char *pathname, int flags, ...);
+typedef int (*open64_type)(const char *pathname, int flags, ...);
 typedef int (*openat_type)(int dirfd, const char *pathname, int flags, ...);
 typedef int (*creat_type)(const char *pathname, mode_t mode);
 typedef void *(*dlopen_type)(const char *, int);
@@ -50,6 +51,8 @@ typedef int (*pipe_type)(int pipefd[2]);
 typedef int (*dup_type)(int oldfd);
 typedef int (*dup2_type)(int oldfd, int newfd);
 typedef int (*dup3_type)(int oldfd, int newfd, int flags);
+typedef int (*setenv_type)(const char *name, const char *value, int overwrite);
+typedef int (*unsetenv_type)(const char *name);
 
 /* Safe call of original open().
  * To prevent system file modification
@@ -57,6 +60,13 @@ typedef int (*dup3_type)(int oldfd, int newfd, int flags);
  * read access works normally.
  */
 int open(const char *pathname, int flags, ...);
+
+/* Safe call of original open64().
+ * To prevent system file modification
+ * we use /dev/null, when w/a/+ mods specified,
+ * read access works normally.
+ */
+int open64(const char *pathname, int flags, ...);
 
 /* Safe call of original openat().
  * To prevent system file modification
@@ -278,3 +288,11 @@ int dup2(int oldfd, int newfd);
 /* Stub for dup3() function.
  */
 int dup3(int oldfd, int newfd, int flags);
+
+/* Stub for setenv() function.
+ */
+int setenv(const char *name, const char *value, int overwrite);
+
+/* Stub for unsetenv() function.
+ */
+int unsetenv(const char *name);

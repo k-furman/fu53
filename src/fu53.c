@@ -7,8 +7,8 @@
  * binary when compiling, or use it via LD_PRELOAD/AFL_PRELOAD.
  *
  * Supported enviromental variables are:
- * - WITH_OPEN, which turnes on original open(), openat(), creat(),
- *   fopen(), fopen64(), fdopen(), freopen() funcs;
+ * - WITH_OPEN, which turnes on original open(), open64(), openat(),
+ *   creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
  * - WITH_REMOVE, which turnes on original remove(), rmdir(),
  *   unlink(), unlinkat() funcs;
  * - WITH_EXEC, which turnes on original execv(), execve(), execvp(),
@@ -24,6 +24,7 @@
  *   mkfifo(), mkfifoat(), mknod(), mknodat(), sem_open(),
  *   semclt(), semget(), pipe() funcs;
  * - WITH_DUP, which turnes on original dup(), dup2(), dup3(), funcs.
+ * - WITH_ENV, which turnes on original setenv(), unsetenv() funcs;
  * - WITH_COVERAGE, which turnes on coverage collection support.
  */
 
@@ -70,6 +71,49 @@ int open(const char *pathname, int flags, ...)
 		return (original_open("/dev/null", flags));
 
 	return (original_open(pathname, flags));
+}
+
+int open64(const char *pathname, int flags, ...)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_OPEN");
+		init = 1;
+	}
+
+	static open64_type original_open64 = NULL;
+	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
+	if (!original_open64)
+		original_open64 = (open64_type)dlsym(RTLD_NEXT, "open64");
+
+	if (value)
+	{
+		if (flags & O_CREAT)
+		{
+			va_list arg;
+			mode_t mode;
+			va_start(arg, flags);
+			if (promoted)
+				mode = va_arg(arg, uint32_t);
+			else
+				mode = va_arg(arg, mode_t);
+			va_end(arg);
+			return (original_open64(pathname, flags, mode));
+		}
+		return (original_open64(pathname, flags));
+	}
+
+	if (getenv("WITH_COVERAGE"))
+		if (strstr(pathname, ".gcda") || strstr(pathname, ".gcno") ||
+			strstr(pathname, ".profraw") || strstr(pathname, ".profdata"))
+			return (original_open64(pathname, flags));
+
+	if (flags & (O_CREAT | O_APPEND | O_WRONLY | O_RDWR | O_SYNC))
+		return (original_open64("/dev/null", flags));
+
+	return (original_open64(pathname, flags));
 }
 
 int openat(int dirfd, const char *pathname, int flags, ...)
@@ -1074,4 +1118,44 @@ int dup3(int oldfd, int newfd, int flags)
 		original_dup3 = (dup3_type)dlsym(RTLD_NEXT, "dup3");
 
 	return (original_dup3(oldfd, newfd, flags));
+}
+
+int setenv(const char *name, const char *value, int overwrite)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_ENV");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static setenv_type original_setenv = NULL;
+	if (!original_setenv)
+		original_setenv = (setenv_type)dlsym(RTLD_NEXT, "setenv");
+
+	return (original_setenv(name, value, overwrite));
+}
+
+int unsetenv(const char *name)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_ENV");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static unsetenv_type original_unsetenv = NULL;
+	if (!original_unsetenv)
+		original_unsetenv = (unsetenv_type)dlsym(RTLD_NEXT, "unsetenv");
+
+	return (original_unsetenv(name));
 }
