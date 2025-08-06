@@ -34,6 +34,12 @@
  * - WITH_DUP, which turnes on original dup(), dup2(), dup3(), funcs.
  * - WITH_ENV, which turnes on original setenv(), unsetenv() funcs;
  * - WITH_COVERAGE, which turnes on coverage collection support.
+ * 
+ * - NO_OPEN, which throw assert(0), on original open(), open64(),
+ *   openat(), creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
+ * - NO_EXEC, which throw assert(0) on original execv(), execve(), 
+ *   execvp(), execvpe(), execveat(), fexecve(), execl(), execlp(),
+ *   execle() funcs;
  */
 
 #include "fu53.h"
@@ -43,21 +49,32 @@ int open(const char *pathname, int flags, ...)
 	static open_type original_open = NULL;
 	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_open)
 		original_open = (open_type)dlsym(RTLD_NEXT, "open");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -95,21 +112,32 @@ int open64(const char *pathname, int flags, ...)
 	static open64_type original_open64 = NULL;
 	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_open64)
 		original_open64 = (open64_type)dlsym(RTLD_NEXT, "open64");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -147,21 +175,32 @@ int openat(int dirfd, const char *pathname, int flags, ...)
 	static openat_type original_openat = NULL;
 	static int promoted = (sizeof(mode_t) < sizeof(uint32_t) - 1 ? 1 : 0);
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_openat)
 		original_openat = (openat_type)dlsym(RTLD_NEXT, "openat");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -197,20 +236,30 @@ int openat(int dirfd, const char *pathname, int flags, ...)
 int creat(const char *pathname, mode_t mode)
 {
 	static creat_type original_creat = NULL;
-	static char *value;
 	static char init = 0;
 	static long unsigned num = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 1)
 		return -1;
+	else if (init == 2)
+		assert(0);
 
 	if (!original_creat)
 		original_creat = (creat_type)dlsym(RTLD_NEXT, "creat");
@@ -227,20 +276,30 @@ int creat(const char *pathname, mode_t mode)
 void *dlopen(const char *filename, int flag)
 {
 	static dlopen_type original_dlopen = NULL;
-	static char *value;
 	static char init = 0;
 	static long unsigned num = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 1)
 		return NULL;
+	else if (init == 2)
+		assert(0);
 
 	if (!original_dlopen)
 		original_dlopen = (dlopen_type)dlsym(RTLD_NEXT, "dlopen");
@@ -258,21 +317,32 @@ FILE *fopen(const char *pathname, const char *mode)
 {
 	static fopen_type original_fopen = NULL;
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_fopen)
 		original_fopen = (fopen_type)dlsym(RTLD_NEXT, "fopen");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -296,21 +366,32 @@ FILE *fopen64(const char *pathname, const char *mode)
 {
 	static fopen64_type original_fopen64 = NULL;
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_fopen64)
 		original_fopen64 = (fopen_type)dlsym(RTLD_NEXT, "fopen64");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -334,21 +415,32 @@ FILE *fdopen(int fildes, const char *mode)
 {
 	static fdopen_type original_fdopen = NULL;
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_fdopen)
 		original_fdopen = (fdopen_type)dlsym(RTLD_NEXT, "fdopen");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -367,21 +459,32 @@ FILE *freopen(const char *path, const char *mode, FILE *stream)
 {
 	static freopen_type original_freopen = NULL;
 	static long unsigned num = 0;
-	static char *value;
 	static char init = 0;
 	static int calls = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_OPEN");
 		if (value)
+		{
 			num = strtoul(value, NULL, 10);
-		init = 1;
+			init = 1;
+		}
+
+		value = getenv("NO_OPEN");
+		if (value)
+			init = 2;
+		else 
+			init = 3;
 	}
+
+	if (init == 2)
+		assert(0);
 
 	if (!original_freopen)
 		original_freopen = (freopen_type)dlsym(RTLD_NEXT, "freopen");
 
-	if (value)
+	if (init == 1)
 	{
 		if (calls < num || num == 0)
 		{
@@ -498,15 +601,23 @@ int execv(const char *path, char *const argv[])
 
 int execve(const char *path, char *const argv[], char *const envp[])
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	static execve_type original_execve = NULL;
@@ -518,15 +629,23 @@ int execve(const char *path, char *const argv[], char *const envp[])
 
 int execvp(const char *file, char *const argv[])
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	static execvp_type original_execvp = NULL;
@@ -538,15 +657,23 @@ int execvp(const char *file, char *const argv[])
 
 int execvpe(const char *file, char *const argv[], char *const envp[])
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	static execvpe_type original_execvpe = NULL;
@@ -558,15 +685,23 @@ int execvpe(const char *file, char *const argv[], char *const envp[])
 
 int execveat(int dirfd, const char *pathname, char *const argv[], char *const envp[], int flags)
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	static execveat_type original_execveat = NULL;
@@ -578,15 +713,23 @@ int execveat(int dirfd, const char *pathname, char *const argv[], char *const en
 
 int fexecve(int fd, char *const argv[], char *const envp[])
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	static fexecve_type original_fexecve = NULL;
@@ -598,15 +741,23 @@ int fexecve(int fd, char *const argv[], char *const envp[])
 
 int execl(const char *path, const char *arg, ...)
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	va_list ap;
@@ -634,15 +785,23 @@ int execl(const char *path, const char *arg, ...)
 
 int execlp(const char *file, const char *arg, ...)
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	va_list ap;
@@ -672,15 +831,23 @@ int execlp(const char *file, const char *arg, ...)
 
 int execle(const char *path, const char *arg, ...)
 {
-	static char *value;
 	static char init = 0;
+	char *value = NULL;
 	if (!init)
 	{
 		value = getenv("WITH_EXEC");
-		init = 1;
+		if (value)
+			init = 1;
+		value = getenv("NO_EXEC");
+		if (value)	
+			init = 2;
+		else
+			init = 3;
 	}
 
-	if (!value)
+	if (init == 2)
+		assert(0);
+	else if (init == 3)
 		return -1;
 
 	va_list ap;

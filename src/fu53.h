@@ -9,6 +9,7 @@
 #include <sys/sem.h>
 #include <stdint.h>
 #include <limits.h>
+#include <assert.h>
 
 typedef int (*open_type)(const char *pathname, int flags, ...);
 typedef int (*open64_type)(const char *pathname, int flags, ...);
