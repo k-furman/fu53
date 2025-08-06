@@ -1489,22 +1489,22 @@ int dup3(int oldfd, int newfd, int flags)
 
 int setenv(const char *name, const char *value, int overwrite)
 {
-	static char *value;
+	static char *env_value;
 	static char init = 0;
 	if (!init)
 	{
-		value = getenv("WITH_ENV");
+		env_value = getenv("WITH_ENV");
 		init = 1;
 	}
 
-	if (!value)
+	if (!env_value)
 		return -1;
 
 	static setenv_type original_setenv = NULL;
 	if (!original_setenv)
 		original_setenv = (setenv_type)dlsym(RTLD_NEXT, "setenv");
 
-	return (original_setenv(name, value, overwrite));
+	return (original_setenv(name, env_value, overwrite));
 }
 
 int unsetenv(const char *name)
