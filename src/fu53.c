@@ -7,33 +7,33 @@
  * binary when compiling, or use it via LD_PRELOAD/AFL_PRELOAD.
  *
  * Supported enviromental variables are:
- * - WITH_OPEN=N, which turnes on original open(), open64(), openat(),
+ * - WITH_OPEN=N, which enables original open(), open64(), openat(),
  *   creat(), fopen(), fopen64(), fdopen(), freopen() funcs. N value
  *   determines how many times original functions can call during one
  *   execution. If any character/string as N value is specified,
  *   or 0 pass as N value, original functions will use;
- * - WITH_REMOVE, which turnes on original remove(), rmdir(),
+ * - WITH_REMOVE, which enables original remove(), rmdir(),
  *   unlink(), unlinkat() funcs;
- * - WITH_EXEC, which turnes on original execv(), execve(), execvp(),
+ * - WITH_EXEC, which enables original execv(), execve(), execvp(),
  *   execvpe(), execveat(), fexecve(), execl(), execlp(),
  *   execle() funcs;
- * - WITH_RENAME, which turnes on original rename(), renameat(),
+ * - WITH_RENAME, which enables original rename(), renameat(),
  *   renameat2() funcs;
- * - WITH_CHANGE, which turnes on original chown(), fchownat(),
+ * - WITH_CHANGE, which enables original chown(), fchownat(),
  *   chmod(), fchmodat() funcs;
- * - WITH_SYSTEM, which turnes on original system(), syscall(),
+ * - WITH_SYSTEM, which enables original system(), syscall(),
  *   chroot() funcs;
- * - WITH_FORK=N, which turnes on original fork(). N value determines
+ * - WITH_FORK=N, which enables original fork(). N value determines
  *   how many times original fork() can call during one execution.
  *   If any character/string as N value is specified,
  *   or 0 pass as N value, original function will use;
- * - WITH_PARALLEL=N, which turnes on original popen(), mkfifo(),
+ * - WITH_PARALLEL=N, which enables original popen(), mkfifo(),
  *   mkfifoat(), mknod(), mknodat(), sem_open(), semclt(), semget(),
  *   pipe() funcs. If any character/string as N value is specified,
  *   or 0 pass as N value, original functions will use;
- * - WITH_DUP, which turnes on original dup(), dup2(), dup3(), funcs.
- * - WITH_ENV, which turnes on original setenv(), unsetenv() funcs;
- * - WITH_COVERAGE, which turnes on coverage collection support.
+ * - WITH_DUP, which enables original dup(), dup2(), dup3(), funcs.
+ * - WITH_ENV, which enables original setenv(), unsetenv() funcs;
+ * - WITH_COVERAGE, which enables coverage collection support.
  * 
  * - NO_OPEN, which throw assert(0), on original open(), open64(),
  *   openat(), creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
