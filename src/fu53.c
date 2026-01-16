@@ -34,7 +34,9 @@
  * - WITH_DUP, which enables original dup(), dup2(), dup3(), funcs.
  * - WITH_ENV, which enables original setenv(), unsetenv() funcs;
  * - WITH_COVERAGE, which enables coverage collection support.
- * 
+ * - WITH_UNSHARE, which enables original unshare() function.
+ * - WITH_MOUNT, which enables original mount() function.
+ *  
  * - NO_OPEN, which throw assert(0), on original open(), open64(),
  *   openat(), creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
  * - NO_EXEC, which throw assert(0) on original execv(), execve(), 
@@ -1525,4 +1527,44 @@ int unsetenv(const char *name)
 		original_unsetenv = (unsetenv_type)dlsym(RTLD_NEXT, "unsetenv");
 
 	return (original_unsetenv(name));
+}
+
+int unshare(int flags)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_UNSHARE");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static unshare_type original_unshare = NULL;
+	if (!original_unshare)
+		original_unshare = (unshare_type)dlsym(RTLD_NEXT, "unshare");
+
+	return (original_unshare(flags));
+}
+
+int mount(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_MOUNT");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static mount_type original_mount = NULL;
+	if (!original_mount)
+		original_mount = (mount_type)dlsym(RTLD_NEXT, "mount");
+
+	return (original_mount(source, target, filesystemtype, mountflags, data));
 }

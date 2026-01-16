@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <limits.h>
 #include <assert.h>
+#include <sched.h>
+#include <sys/mount.h>
 
 typedef int (*open_type)(const char *pathname, int flags, ...);
 typedef int (*open64_type)(const char *pathname, int flags, ...);
@@ -55,6 +57,8 @@ typedef int (*dup2_type)(int oldfd, int newfd);
 typedef int (*dup3_type)(int oldfd, int newfd, int flags);
 typedef int (*setenv_type)(const char *name, const char *value, int overwrite);
 typedef int (*unsetenv_type)(const char *name);
+typedef int (*unshare_type)(int flags);
+typedef int (*mount_type)(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
 
 /* Safe call of original open().
  * To prevent system file modification
@@ -298,3 +302,11 @@ int setenv(const char *name, const char *value, int overwrite);
 /* Stub for unsetenv() function.
  */
 int unsetenv(const char *name);
+
+/* Stub for unshare() function.
+ */
+int unshare(int flags);
+
+/* Stub for mount() function.
+ */
+int mount(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
