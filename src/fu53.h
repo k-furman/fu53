@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <sched.h>
 #include <sys/mount.h>
+#include <unistd.h>
 
 typedef int (*open_type)(const char *pathname, int flags, ...);
 typedef int (*open64_type)(const char *pathname, int flags, ...);
@@ -59,6 +60,10 @@ typedef int (*setenv_type)(const char *name, const char *value, int overwrite);
 typedef int (*unsetenv_type)(const char *name);
 typedef int (*unshare_type)(int flags);
 typedef int (*mount_type)(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
+typedef int (*setegid_type)(gid_t egid);
+typedef int (*seteuid_type)(gid_t euid);
+typedef int (*setgid_type)(gid_t gid);
+typedef int (*setuid_type)(gid_t uid);
 
 /* Safe call of original open().
  * To prevent system file modification
@@ -310,3 +315,19 @@ int unshare(int flags);
 /* Stub for mount() function.
  */
 int mount(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
+
+/* Stub for setegid() function.
+ */
+int setegid(gid_t egid);
+
+/* Stub for seteuid() function.
+ */
+int seteuid(gid_t euid);
+
+/* Stub for setgid() function.
+ */
+int setgid(gid_t gid);
+
+/* Stub for setuid() function.
+ */
+int setuid(gid_t uid);

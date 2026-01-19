@@ -33,9 +33,11 @@
  *   or 0 pass as N value, original functions will use;
  * - WITH_DUP, which enables original dup(), dup2(), dup3(), funcs.
  * - WITH_ENV, which enables original setenv(), unsetenv() funcs;
- * - WITH_COVERAGE, which enables coverage collection support.
- * - WITH_UNSHARE, which enables original unshare() function.
- * - WITH_MOUNT, which enables original mount() function.
+ * - WITH_COVERAGE, which enables coverage collection support;
+ * - WITH_UNSHARE, which enables original unshare() function;
+ * - WITH_MOUNT, which enables original mount() function;
+ * - WITH_GUID, which enables original setegid(), seteuid(),
+ *   setgid(), setuid() functions.
  *  
  * - NO_OPEN, which throw assert(0), on original open(), open64(),
  *   openat(), creat(), fopen(), fopen64(), fdopen(), freopen() funcs;
@@ -1567,4 +1569,84 @@ int mount(const char *source, const char *target, const char *filesystemtype, un
 		original_mount = (mount_type)dlsym(RTLD_NEXT, "mount");
 
 	return (original_mount(source, target, filesystemtype, mountflags, data));
+}
+
+int setegid(gid_t egid)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_UGID");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static setegid_type original_setegid = NULL;
+	if (!original_setegid)
+		original_setegid = (setegid_type)dlsym(RTLD_NEXT, "setegid");
+
+	return (original_setegid(egid));
+}
+
+int seteuid(gid_t euid)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_UGID");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static seteuid_type original_seteuid = NULL;
+	if (!original_seteuid)
+		original_seteuid = (seteuid_type)dlsym(RTLD_NEXT, "seteuid");
+
+	return (original_seteuid(euid));
+}
+
+int setgid(gid_t gid)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_UGID");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static setgid_type original_setgid = NULL;
+	if (!original_setgid)
+		original_setgid = (setgid_type)dlsym(RTLD_NEXT, "setgid");
+
+	return (original_setgid(gid));
+}
+
+int setuid(gid_t uid)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_UGID");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static setuid_type original_setuid = NULL;
+	if (!original_setuid)
+		original_setuid = (setuid_type)dlsym(RTLD_NEXT, "setuid");
+
+	return (original_setuid(uid));
 }
