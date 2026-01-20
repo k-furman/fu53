@@ -7,7 +7,7 @@ static:
 	$(CC) $(CFLAGS) -static -c src/fu53.c -o fu53.o
 
 shared:
-	$(CC) $(CFLAGS) -shared -c src/fu53.c -o fu53.so
+	$(CC) $(CFLAGS) -shared src/fu53.c -o fu53.so
 
 install:
 	install -m 644 fu53.o /usr/lib/fu53.o
