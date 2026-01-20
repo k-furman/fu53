@@ -57,6 +57,7 @@ typedef int (*dup_type)(int oldfd);
 typedef int (*dup2_type)(int oldfd, int newfd);
 typedef int (*dup3_type)(int oldfd, int newfd, int flags);
 typedef int (*setenv_type)(const char *name, const char *value, int overwrite);
+typedef int (*putenv_type)(char *string);
 typedef int (*unsetenv_type)(const char *name);
 typedef int (*unshare_type)(int flags);
 typedef int (*mount_type)(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
@@ -303,6 +304,10 @@ int dup3(int oldfd, int newfd, int flags);
 /* Stub for setenv() function.
  */
 int setenv(const char *name, const char *value, int overwrite);
+
+/* Stub for putenv() function.
+ */
+int putenv(char *string);
 
 /* Stub for unsetenv() function.
  */

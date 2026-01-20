@@ -32,7 +32,8 @@
  *   pipe() funcs. If any character/string as N value is specified,
  *   or 0 pass as N value, original functions will use;
  * - WITH_DUP, which enables original dup(), dup2(), dup3(), funcs.
- * - WITH_ENV, which enables original setenv(), unsetenv() funcs;
+ * - WITH_ENV, which enables original setenv(), putenv(), 
+ *   unsetenv() funcs;
  * - WITH_COVERAGE, which enables coverage collection support;
  * - WITH_UNSHARE, which enables original unshare() function;
  * - WITH_MOUNT, which enables original mount() function;
@@ -1509,6 +1510,26 @@ int setenv(const char *name, const char *value, int overwrite)
 		original_setenv = (setenv_type)dlsym(RTLD_NEXT, "setenv");
 
 	return (original_setenv(name, env_value, overwrite));
+}
+
+int putenv(char *string)
+{
+	static char *env_value;
+	static char init = 0;
+	if (!init)
+	{
+		env_value = getenv("WITH_ENV");
+		init = 1;
+	}
+
+	if (!env_value)
+		return -1;
+
+	static putenv_type original_putenv = NULL;
+	if (!original_putenv)
+		original_putenv = (putenv_type)dlsym(RTLD_NEXT, "putenv");
+
+	return (original_putenv(string));
 }
 
 int unsetenv(const char *name)
