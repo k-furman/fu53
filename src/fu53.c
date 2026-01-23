@@ -19,8 +19,8 @@
  *   execle() funcs;
  * - WITH_RENAME, which enables original rename(), renameat(),
  *   renameat2() funcs;
- * - WITH_CHANGE, which enables original chown(), fchownat(),
- *   chmod(), fchmodat() funcs;
+ * - WITH_CHANGE, which enables original chown(), fchown(),
+ *   fchownat(), chmod(), fchmod(), fchmodat() funcs;
  * - WITH_SYSTEM, which enables original system(), syscall(),
  *   chroot() funcs;
  * - WITH_FORK=N, which enables original fork(). N value determines
@@ -960,6 +960,26 @@ int chown(const char *path, uid_t owner, gid_t group)
 	return (original_chown(path, owner, group));
 }
 
+int fchown(int fd, uid_t owner, gid_t group)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static fchown_type original_fchown = NULL;
+	if (!original_fchown)
+		original_fchown = (fchown_type)dlsym(RTLD_NEXT, "fchown");
+
+	return (original_fchown(fd, owner, group));
+}
+
 int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags)
 {
 	static char *value;
@@ -998,6 +1018,26 @@ int chmod(const char *pathname, mode_t mode)
 		original_chmod = (chmod_type)dlsym(RTLD_NEXT, "chmod");
 
 	return (original_chmod(pathname, mode));
+}
+
+int fchmod(int fd, mode_t mode)
+{
+	static char *value;
+	static char init = 0;
+	if (!init)
+	{
+		value = getenv("WITH_CHANGE");
+		init = 1;
+	}
+
+	if (!value)
+		return -1;
+
+	static fchmod_type original_fchmod = NULL;
+	if (!original_fchmod)
+		original_fchmod = (fchmod_type)dlsym(RTLD_NEXT, "fchmod");
+
+	return (original_fchmod(fd, mode));
 }
 
 int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)

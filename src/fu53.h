@@ -37,8 +37,10 @@ typedef int (*rename_type)(const char *oldpath, const char *newpath);
 typedef int (*renameat_type)(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
 typedef int (*renameat2_type)(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, unsigned int flags);
 typedef int (*chown_type)(const char *path, uid_t owner, gid_t group);
+typedef int (*fchown_type)(int fd, uid_t owner, gid_t group);
 typedef int (*fchownat_type)(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
 typedef int (*chmod_type)(const char *pathname, mode_t mode);
+typedef int (*fchmod_type)(int fd, mode_t mode);
 typedef int (*fchmodat_type)(int dirfd, const char *pathname, mode_t mode, int flags);
 typedef int (*system_type)(const char *command);
 typedef long (*syscall_type)(long number, ...);
@@ -208,15 +210,25 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd, const char *newpa
  */
 int chown(const char *path, uid_t owner, gid_t group);
 
+/* Stub for fchown() function.
+ * Necessary to prevent owner of files.
+ */
+int fchown(int fd, uid_t owner, gid_t group);
+
 /* Stub for chownat() function.
  * Necessary to prevent owner of files.
  */
 int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
 
-/* Stub for chown() function.
+/* Stub for chmod() function.
  * Necessary to prevent rights of files.
  */
 int chmod(const char *pathname, mode_t mode);
+
+/* Stub for fchmod() function.
+ * Necessary to prevent rights of files.
+ */
+int fchmod(int fd, mode_t mode);
 
 /* Stub for fchmodat() function.
  * Necessary to prevent rights of files.
